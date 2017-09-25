@@ -1,0 +1,6 @@
+include(CMakeFindDependencyMacro)
+find_dependency(LAPACKE)
+find_dependency(LAPACK)
+find_dependency(OpenMP)
+find_dependency(Threads)
+include("${CMAKE_CURRENT_LIST_DIR}/proxTVTargets.cmake")
