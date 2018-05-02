@@ -26,11 +26,9 @@ message(STATUS "proxTV version: ${proxTV_VERSION}")
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 find_package(LAPACKE REQUIRED)
-message(STATUS "Lapacke found?: ${LAPACKE_FOUND}")
 message(STATUS "Lapacke libraries: ${LAPACKE_LIBRARIES}")
 
 find_package(LAPACK REQUIRED)
-message(STATUS "Lapack found?: ${LAPACKE_FOUND}")
 message(STATUS "Lapack libraries: ${LAPACK_LIBRARIES}")
 
 find_package(Threads)
