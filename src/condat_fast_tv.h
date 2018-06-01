@@ -75,6 +75,8 @@ If width<=0, nothing is done.
 
 extern "C" {
 
+void TV1D_denoise_v1(double* input, double* output, const int width, const double lambda);
+void TV1D_denoise_v2(double* input, double* output, const int width, const double lambda);
 void TV1D_denoise(double* input, double* output, const int width, const double lambda);
 void TV1D_denoise_tautstring(double* input, double* output, int width, const double lambda);
 
