@@ -18,7 +18,7 @@ message(STATUS "proxTV version: ${proxTV_VERSION}")
 # Append local module directory to the find_package search:
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
-find_package(LAPACKE REQUIRED)
+find_package(LAPACKE 3.6.1 CONFIG REQUIRED)
 message(STATUS "Lapacke libraries: ${LAPACKE_LIBRARIES}")
 
 find_package(LAPACK REQUIRED)
