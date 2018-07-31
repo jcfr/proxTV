@@ -17,6 +17,11 @@ addons:
 install:
     - pip install coveralls
     - python setup.py install
-script: nosetests --with-coverage --cover-package=prox_tv
+script:
+    - nosetests --with-coverage --cover-package=prox_tv
+    - mkdir -p build && cd build
+    - cmake -DENABLE_TESTING:BOOL=ON ../
+    - cmake --build .
+    - ctest -VV
 after_success:
     - coveralls
