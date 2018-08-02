@@ -1,27 +1,37 @@
 language: python
 python:
-  - "2.6"
   - "2.7"
-  - "3.3"
   - "3.4"
   - "3.5"
   - "3.6"
 os: linux
 dist: trusty
-addons:
-    apt:
-        packages:
-        - libopenblas-dev
-        - liblapack-dev
-        - liblapacke-dev
+sudo: required
 install:
+    - docker pull ubuntu:xenial
     - pip install coveralls
-    - python setup.py install
 script:
-    - nosetests --with-coverage --cover-package=prox_tv
-    - mkdir -p build && cd build
-    - cmake -DENABLE_TESTING:BOOL=ON ../
-    - cmake --build .
-    - ctest -VV
+    - export PYTHONVERSION=$(python -c 'import platform; print(platform.python_version()[0:3])')
+    - >
+      docker run -e PYTHONVERSION=${PYTHONVERSION} -v $(pwd):/app ubuntu:xenial bash -x -c "
+      apt-get update &&
+      apt-get install -y wget bzip2 build-essential cmake libffi-dev libopenblas-dev liblapack-dev liblapacke-dev &&
+      wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh &&
+      bash Miniconda3-latest-Linux-x86_64.sh -b &&
+      /root/miniconda3/bin/conda config --set always_yes yes --set changeps1 no &&
+      /root/miniconda3/bin/conda create -n testenv python=${PYTHONVERSION} &&
+      source /root/miniconda3/bin/activate testenv &&
+      which python &&
+      python -V &&
+      pip install nose coveralls &&
+      cd app &&
+      python setup.py install &&
+      nosetests --with-coverage --cover-package=prox_tv
+      mkdir -p build &&
+      cd build &&
+      cmake -DENABLE_TESTING:BOOL=ON ../ &&
+      cmake --build . &&
+      ctest -VV
+      "
 after_success:
-    - coveralls
+- coveralls

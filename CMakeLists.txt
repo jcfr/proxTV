@@ -4,10 +4,14 @@ if(POLICY CMP0054)
     cmake_policy(SET CMP0054 NEW)
 endif()
 
-project(proxTV
-        DESCRIPTION "Toolbox for fast Total Variation proximity operators"
-        VERSION 3.2.1
-        )
+project(proxTV)
+
+set(proxTV_DESCRIPTION "Toolbox for fast Total Variation proximity operators")
+# Set VERSION
+set(proxTV_VERSION_MAJOR 3)
+set(proxTV_VERSION_MINOR 2)
+set(proxTV_VERSION_PATCH 1)
+set(proxTV_VERSION "${proxTV_VERSION_MAJOR}.${proxTV_VERSION_MINOR}.${proxTV_VERSION_PATCH}")
 
 message(STATUS "proxTV version: ${proxTV_VERSION}")
 
