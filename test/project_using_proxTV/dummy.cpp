@@ -1,4 +1,5 @@
 #include "TVopt.h"
+#include <iostream>
 
 
 int main()
@@ -21,6 +22,8 @@ int main()
     delete unary;
     delete s;
     delete info;
+
+    std::cout << "proxTV dummy project, works!" << std::endl;
 
     return r;
 }

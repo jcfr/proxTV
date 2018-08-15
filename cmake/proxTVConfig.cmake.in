@@ -1,3 +1,9 @@
+set(proxTV_VERSION "@proxTV_VERSION@")
+@PACKAGE_INIT@
+set_and_check(proxTV_INCLUDE_DIR "@PACKAGE_INCLUDE_DIR@")
+
+check_required_components(proxTV)
+
 include(CMakeFindDependencyMacro)
 find_dependency(LAPACKE)
 find_dependency(LAPACK)

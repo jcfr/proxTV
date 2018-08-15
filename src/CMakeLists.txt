@@ -1,6 +1,6 @@
-set(LIB_INSTALL_DIR lib CACHE STRING "Install folder for lib (relative")
-set(INCLUDE_INSTALL_DIR include CACHE STRING "Install folder for headers (relative")
-set(EXECUTABLE_INSTALL_DIR bin CACHE STRING "Install folder for executables (relative")
+set(LIB_INSTALL_DIR lib CACHE STRING "Install folder for lib (relative)")
+set(INCLUDE_INSTALL_DIR include CACHE STRING "Install folder for headers (relative)")
+set(EXECUTABLE_INSTALL_DIR bin CACHE STRING "Install folder for executables (relative)")
 
 set(headers
     condat_fast_tv.h
@@ -75,7 +75,21 @@ install(EXPORT proxTVTargets
 
 # Generate and install proxTVConfigVersion.cmake
 include(CMakePackageConfigHelpers)
-write_basic_package_version_file("proxTVConfigVersion.cmake"
+# Install TIME
+set(INCLUDE_DIR ${INCLUDE_INSTALL_DIR})
+configure_package_config_file(${CMAKE_SOURCE_DIR}/cmake/proxTVConfig.cmake.in
+    ${CMAKE_CURRENT_BINARY_DIR}/proxTVConfig.cmake
+    INSTALL_DESTINATION ${LIB_INSTALL_DIR}/proxTV/cmake
+    PATH_VARS INCLUDE_DIR)
+# BUILD TIME
+set(INCLUDE_DIR src/${INCLUDE_INSTALL_DIR})
+configure_package_config_file(${CMAKE_SOURCE_DIR}/cmake/proxTVConfig.cmake.in
+    ${CMAKE_BINARY_DIR}/proxTVConfig.cmake
+    INSTALL_PREFIX ${CMAKE_CURRENT_BINARY_DIR}
+    INSTALL_DESTINATION ${LIB_INSTALL_DIR}/proxTV/cmake
+    PATH_VARS INCLUDE_DIR)
+write_basic_package_version_file(
+    ${CMAKE_CURRENT_BINARY_DIR}/proxTVConfigVersion.cmake
     VERSION ${proxTV_VERSION}
     COMPATIBILITY SameMajorVersion
     )
@@ -86,6 +100,6 @@ install(FILES
 
 # Install proxTVConfig.cmake
 install(FILES
-    ${CMAKE_SOURCE_DIR}/cmake/proxTVConfig.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/proxTVConfig.cmake
     DESTINATION ${LIB_INSTALL_DIR}/cmake/proxTV
     )
