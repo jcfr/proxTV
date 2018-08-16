@@ -60,11 +60,100 @@ If you find this toolbox useful please reference the following papers:
 
 """
 
+import os
+
+import cffi
 import numpy as np
-from _prox_tv import ffi, lib
 
 # The maximum number of returned info parameters.
 _N_INFO = 3
+
+ffi = cffi.FFI()
+ffi.cdef("""
+    /* Workspace for warm restarts and memory management */
+    typedef struct {
+        /* Size of memory vectors */
+        int n;
+        /* Generic memory which can be used by 1D algorithms */
+        double **d;
+        int maxd, nd;
+        int **i;
+        int maxi, ni;
+        /* Memory for inputs and outputs */
+        double *in,*out;
+        /* Warm restart variables */
+        short warm;
+        double *warmDual;
+        double warmLambda;
+    } Workspace;
+
+    // Condat's implementation.
+    void TV1D_denoise(double* input, double* output, const int width,
+                      const double lambda);
+    void TV1D_denoise_tautstring(double* input, double* output, int width,
+                                 const double lambda);
+    // Ryan's implementation of Johnson's algorithm
+    void dp(int n, double *y, double lam, double *beta);
+
+    /* TV-L1 solvers */
+
+    int PN_TV1(double *y,double lambda,double *x,double *info,int n,double sigma,Workspace *ws);
+    int linearizedTautString_TV1(double *y,double lambda,double *x,int n);
+    int classicTautString_TV1(double *signal, int n, double lam, double *prox);
+    void hybridTautString_TV1(double *y, int n, double lambda, double *x);
+    void hybridTautString_TV1_custom(double *y, int n, double lambda, double *x, double backtracksexp);
+    void SolveTVConvexQuadratic_a1_nw(int n, double* b, double w, double* solution);
+
+    /* Weighted TV-L1 solvers */
+    int PN_TV1_Weighted(double* Y, double* W, double* X, double* info, int n,
+                        double sigma, Workspace* ws);
+    int tautString_TV1_Weighted(double *y, double* lambda, double *x, int n);
+    void SolveTVConvexQuadratic_a1(int n, double* b, double* w, double* solution);
+
+    /* TV-L2 solvers */
+    int more_TV2(double *y,double lambda, double *x, double *info, int n);
+    int PG_TV2(double *y, double lambda, double *x,double *info, int n);
+    int morePG_TV2(double *y, double lambda, double *x, double *info, int n,
+                   Workspace *ws);
+
+    /* Weighted TV-L2 solvers */
+    int DR2L1W_TV(size_t M, size_t N, double* unary, double*W1, double*W2,
+                  double *s, int nThreads, int maxit, double* info);
+
+
+    /* 2-dimensional TV solvers */
+    int PD2_TV(double *y, double *lambdas, double *norms, double *dims,
+               double *x, double *info, int *ns, int nds, int npen, int ncores,
+               int maxIters);
+    int DR2_TV(size_t M, size_t N, double*unary, double W1, double W2,
+               double norm1, double norm2, double*s, int nThreads, int maxit,
+               double* info);
+    int CondatChambollePock2_TV(size_t M, size_t N, double*Y, double lambda,
+                                double*X, short alg, int maxit, double* info);
+    int Yang2_TV(size_t M, size_t N, double*Y, double lambda, double*X,
+                 int maxit, double* info);
+    int Kolmogorov2_TV(size_t M, size_t N, double*Y, double lambda, double*X,
+                 int maxit, double* info);
+
+    /* General-dimension TV solvers */
+    int PD_TV(double *y, double *lambdas, double *norms, double *dims,
+                double *x, double *info, int *ns, int nds, int npen,
+                int ncores, int maxIters);
+
+    /* TV-Lp solvers */
+    int GP_TVp(double *y, double lambda, double *x, double *info, int n,
+               double p, Workspace *ws);
+    int OGP_TVp(double *y, double lambda, double *x, double *info, int n,
+                double p, Workspace *ws);
+    int FISTA_TVp(double *y, double lambda, double *x, double *info, int n,
+                  double p, Workspace *ws);
+    int FW_TVp(double *y, double lambda, double *x, double *info, int n,
+               double p, Workspace *ws);
+    int GPFW_TVp(double *y, double lambda, double *x, double *info, int n,
+                 double p, Workspace *ws);
+""")
+lib = ffi.dlopen(os.path.join(os.path.dirname(__file__), 'libproxTV.so'))
+
 
 
 def _call(fn, *args):
@@ -151,7 +240,7 @@ def tv1_1d(x, w, method='hybridtautstring', sigma=0.05, maxbacktracks=None):
 
     sigma : float
         Tolerance for sufficient descent (used only if ``method='pn'``).
-        
+
     maxbacktracks: float
         Backtrack steps before switching (used only if ``method='hybridtautstring'``)
 
@@ -189,10 +278,10 @@ def _linearizedtautstring_TV1(x, w, y, **kwargs):
 def _hybridtautstring_TV1(x, w, y, **kwargs):
     """Hybrid taut string method for TV1 proximity"""
     if kwargs['maxbacktracks'] is None:
-        _call(lib.hybridTautString_TV1, x, np.size(x), w, y)    
+        _call(lib.hybridTautString_TV1, x, np.size(x), w, y)
     else:
-        _call(lib.hybridTautString_TV1_custom, x, np.size(x), w, y, 
-              kwargs['maxbacktracks']) 
+        _call(lib.hybridTautString_TV1_custom, x, np.size(x), w, y,
+              kwargs['maxbacktracks'])
 
 def _pn_TV1(x, w, y, **kwargs):
     """Projected Newton method for TV1 proximity"""
@@ -422,7 +511,7 @@ def _pd_tv2d(x, w, y, max_iters, info, **kwargs):
 
 def _kolmogorov_tv2d(x, w, y, max_iters, info, **kwargs):
     """Kolmogorov's method for 2D TV proximity"""
-    _call(lib.Kolmogorov2_TV, x.shape[0], x.shape[1], x, w, y, max_iters, 
+    _call(lib.Kolmogorov2_TV, x.shape[0], x.shape[1], x, w, y, max_iters,
               info)
 
 def _condat_tv2d(x, w, y, max_iters, info, **kwargs):
@@ -439,7 +528,7 @@ def _chambollepockacc_tv2d(x, w, y, max_iters, info, **kwargs):
 
 def _condatchambollepock_tv2d(x, w, y, max_iters, info, **kwargs):
     """Wrapper function for general implementaton of Chambolle-Pock + Condat"""
-    _call(lib.CondatChambollePock2_TV, x.shape[0], x.shape[1], x, w, y, 
+    _call(lib.CondatChambollePock2_TV, x.shape[0], x.shape[1], x, w, y,
           kwargs['algorithm'], max_iters, info)
 
 def tv1w_2d(x, w_col, w_row, max_iters=0, n_threads=1):

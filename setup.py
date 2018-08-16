@@ -1,5 +1,4 @@
-from setuptools import setup
-
+from skbuild import setup
 
 setup(
     name="prox_tv",
@@ -11,13 +10,10 @@ setup(
         'numpy>=1.6.2',
         'cffi>=1.0.0',
     ],
-    setup_requires=[
-        'cffi>=1.0.0',
-    ],
+    setup_requires=[],
     package_data={
-        'prox_tv': ['src/demos/*']
+        'prox_tv': ['demos/*']
     },
-    cffi_modules=['prox_tv/prox_tv_build.py:ffi'],
     author="Alvaro Barbero, Suvrit Sra, Josip Djolonga (python bindings)",
     author_email="alvaro.barbero@uam.es",
     url='https://github.com/albarji/proxTV',
@@ -37,4 +33,10 @@ setup(
     ],
     keywords='total variation image processing machine learning',
     test_suite="nose.collector",
+    cmake_args=[
+        '-DproxTV_INSTALL_DEVELOPMENT:BOOL=0',
+        '-DBUILD_SHARED_LIBS:BOOL=1',
+        '-DproxTV_INSTALL_BIN_DIR:STRING=prox_tv',
+        '-DproxTV_INSTALL_LIB_DIR:STRING=prox_tv'
+    ]
 )
